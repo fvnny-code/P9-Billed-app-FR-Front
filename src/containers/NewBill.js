@@ -17,9 +17,16 @@ export default class NewBill {
   }
   handleChangeFile = e => {
     e.preventDefault()
+    this.document.querySelector('#file-errorMessage').textContent = "";
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
     const filePath = e.target.value.split(/\\/g)
     const fileName = filePath[filePath.length-1]
+    const fileExtension = fileName.substr(fileName.lastIndexOf('.') + 1);
+    const acceptedExtensions = ['jpeg', 'jpg','png', 'gif']
+    if(!acceptedExtensions.includes(fileExtension)){
+      this.document.querySelector('#file-errorMessage').textContent = "* Le format du fichier n'est pas accepté."
+      return;
+    }
     const formData = new FormData()
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
