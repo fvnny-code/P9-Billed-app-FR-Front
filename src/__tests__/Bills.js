@@ -4,6 +4,7 @@
 
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import BillsUI from "../views/BillsUI.js";
+// import Actions from "../views/Actions.js"
 import { bills } from "../fixtures/bills.js";
 import { ROUTES_PATH, ROUTES } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
@@ -50,7 +51,6 @@ describe("Given I am connected as an employee", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
-
       const BillsPage = new Bills({
         document,
         onNavigate,
@@ -59,12 +59,40 @@ describe("Given I am connected as an employee", () => {
       });
       // récupération des éléments
       const buttonNewBill = screen.getByTestId("btn-new-bill");
-      const callBack = jest.fn((e) => BillsPage.handleClickNewBill(e));
+      const callBack = jest.fn(() => BillsPage.handleClickNewBill());
       buttonNewBill.addEventListener("click", callBack);
       // simulation de click surle bouton
-      fireEvent.click(buttonNewBill)
-
+      fireEvent.click(buttonNewBill);
       expect(callBack).toHaveBeenCalled();
+    });
+    test("When I click on iconEye, a modal is displayed with the correct content", () => {
+      //mock
+      $.fn.modal = jest.fn();
+
+      // mise en place de l'environnement
+      document.body.innerHTML = BillsUI({ data: bills });
+
+      // Créer une instance de la classe Bills
+      const billsPage = new Bills({
+        document,
+        store: null,
+        localStorage: window.localStorage,
+      });
+
+      const iconEyes = screen.getAllByTestId("icon-eye");
+      iconEyes.forEach((iconEye) => {
+        // mock de la fonction eventListener pour passer en paramètre l'icône plutôt que l'événement.
+        const callBack = jest.fn(billsPage.handleClickIconEye(iconEye));
+        iconEye.addEventListener("click", callBack);
+      });
+      // Simuler un clic sur l'icône
+      fireEvent.click(iconEyes[0]);
+
+      const modale = screen.getByTestId("modaleFile");
+      // Vérifier que la fonction modal du plugin jQuery a été appelée avec les bons arguments
+      expect($.fn.modal).toHaveBeenCalledWith("show");
+      // vérifier que la modale s'affiche après un clic
+      expect(modale).toBeTruthy();
     });
   });
 });
