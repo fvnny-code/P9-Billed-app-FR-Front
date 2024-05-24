@@ -25,6 +25,7 @@ export default class NewBill {
     const acceptedExtensions = ['jpeg', 'jpg','png', 'gif']
     if(!acceptedExtensions.includes(fileExtension)){
       this.document.querySelector('#file-errorMessage').textContent = "* Le format du fichier n'est pas accepté."
+      file.value = ""
       return;
     }
     const formData = new FormData()
