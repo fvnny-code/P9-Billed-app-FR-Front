@@ -36,11 +36,26 @@ describe("Given I am connected as an employee", () => {
     });
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills });
+      const year = new Date().getFullYear();
+      const monthList = [...Array(12).keys()];
+      const formatter = new Intl.DateTimeFormat("fr", {
+        month: "short",
+      });
+      const monthsName = monthList.map((m) =>
+        formatter.format(new Date(year, m))
+      );
+
       const dates = screen
-        .getAllByText(
-          /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i
-        )
-        .map((a) => a.innerHTML);
+        .getAllByText(/^[0-9]{1,2}[ ][a-zA-Z]{3}\.[ ][0-9]{2}$/i)
+        .map((a) => a.innerHTML)
+        .map((a) => {
+          const [day, month, year] = a.split(" ");
+          const cMonth = month.replace(".", "");
+          const index = monthsName.findIndex((c) => cMonth === c);
+
+          return new Date(`20${year}`, index, day);
+        });
+      
       const antiChrono = (a, b) => (a < b ? 1 : -1);
       const datesSorted = [...dates].sort(antiChrono);
       expect(dates).toEqual(datesSorted);

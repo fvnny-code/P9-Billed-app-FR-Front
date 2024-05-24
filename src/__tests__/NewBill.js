@@ -2,14 +2,17 @@
  * @jest-environment jsdom
  */
 
-import { fireEvent, getAllByText, screen, waitFor } from "@testing-library/dom";
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import NewBillUI from "../views/NewBillUI.js";
 import { ROUTES_PATH, ROUTES } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 import store from "../__mocks__/store.js";
+import mockStore from "../__mocks__/store";
 
 import router from "../app/Router.js";
 import NewBill from "../containers/NewBill.js";
+
+jest.mock("../app/store", () => mockStore);
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
@@ -130,6 +133,43 @@ describe("Given I am connected as an employee", () => {
       fireEvent.submit(form);
       expect(handleSubmitMock).toHaveBeenCalled();
       expect(screen.getByText("Mes notes de frais")).toBeTruthy();
+    });
+    test("When I submit the form to create a new Bill, then the form data should be correctly collected", async () => {
+      jest.spyOn(mockStore, "bills");
+
+      document.body.innerHTML = NewBillUI();
+      const create = jest.fn(() => {
+        return Promise.resolve({
+          fileUrl: "https://localhost:3456/images/test.jpg",
+          key: "1234",
+        });
+      });
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          create,
+        };
+      });
+
+      const newBill = new NewBill({
+        document,
+        onNavigate,
+        store: mockStore,
+        localStorage: localStorageMock,
+      });
+
+      const fileInput = screen.getByTestId("file");
+      fireEvent.change(fileInput, {
+        target: {
+          files: [
+            new File(["file content"], "file.png", {
+              type: "image/png",
+            }),
+          ],
+        },
+      });
+      await new Promise(process.nextTick);
+      console.log(newBill);
+      expect(create).toHaveBeenCalled();
     });
   });
 });
